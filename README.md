@@ -70,12 +70,13 @@ To enable email notifications:
 If you want to test the portal UI safely without losing your SSH connection:
 1. Run the test script in **Preview Mode**:
    ```bash
-   sudo python3 scripts/test_portal.py --preview
+   # From your virtual environment
+   python3 scripts/test_portal.py --preview
    ```
-2. Open your browser and visit your Raspberry Pi's IP address (e.g., `http://192.168.1.50`).
+2. Open your browser and visit `http://localhost:8080` (or your Pi's IP).
 
 To test the **Full Mode** (broadcasts a real hotspot, will disconnect SSH):
-1. Run the test script in **Full Mode**:
+1. Run the test script in **Full Mode** (requires sudo):
    ```bash
    sudo python3 scripts/test_portal.py
    ```
@@ -89,3 +90,18 @@ You can monitor the service's activity with:
 ```bash
 journalctl -u nowifidenied.service -f
 ```
+
+## Development & Linting
+
+To maintain code quality, this project uses `ruff`.
+
+1. Install development dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+2. Run the linting script:
+   ```bash
+   chmod +x scripts/lint.sh
+   ./scripts/lint.sh
+   ```
+   This will check for errors and automatically format your code.

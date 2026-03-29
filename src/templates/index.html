@@ -5,106 +5,278 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>No WiFi! Denied!</title>
     <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-color: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f0f2f5;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            height: 100vh;
+            overflow: hidden; /* Prevent scroll on particles */
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
         }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
         .container {
-            background: white;
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             width: 90%;
             max-width: 400px;
+            z-index: 10;
+            max-height: 90vh;
+            overflow-y: auto;
         }
+
         h1 {
-            color: #1c1e21;
+            color: var(--text-primary);
             font-size: 1.5rem;
+            margin-top: 0;
             margin-bottom: 1.5rem;
             text-align: center;
+            letter-spacing: -0.025em;
         }
+
         .network-list {
             margin-bottom: 1.5rem;
             max-height: 200px;
             overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.5);
         }
+
         .network-item {
-            padding: 0.75rem;
-            border-bottom: 1px solid #eee;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s ease;
+            color: var(--text-secondary);
         }
+
         .network-item:last-child {
             border-bottom: none;
         }
+
         .network-item:hover {
-            background: #f7f8fa;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
         }
+
         .network-item.selected {
-            background: #e7f3ff;
-            border-left: 4px solid #1877f2;
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-color);
+            border-left: 4px solid var(--accent-color);
         }
-        input[type="password"], input[type="text"] {
+
+        input {
             width: 100%;
-            padding: 0.75rem;
+            padding: 0.85rem;
             margin-top: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
             box-sizing: border-box;
+            color: white;
+            font-size: 1rem;
+            transition: border-color 0.2s;
         }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        input::placeholder {
+            color: #475569;
+        }
+
         button {
             width: 100%;
-            padding: 0.75rem;
-            margin-top: 1rem;
-            background-color: #1877f2;
-            color: white;
+            padding: 0.85rem;
+            margin-top: 1.5rem;
+            background-color: var(--accent-color);
+            color: #0f172a;
             border: none;
-            border-radius: 8px;
-            font-weight: bold;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
+            transition: transform 0.1s, background-color 0.2s;
         }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
         button:disabled {
-            background-color: #bcc0c4;
+            background-color: #334155;
+            color: #64748b;
+            cursor: not-allowed;
         }
-        #status {
-            margin-top: 1rem;
+
+        .video-container {
+            margin-bottom: 1.5rem;
             text-align: center;
-            color: #65676b;
-            font-size: 0.9rem;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        #status {
+            margin-top: 1.2rem;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
+    <canvas id="bg-canvas"></canvas>
+
     <div class="container">
         <h1>📶 No WiFi! Denied!</h1>
         
-        <div style="margin-bottom: 1.5rem; text-align: center;">
-            <img src="{{ url_for('static', filename='waynenowifi.gif') }}" alt="No WiFi! Denied!" style="width: 100%; height: auto; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+        <div class="video-container">
+            <img src="{{ url_for('static', filename='waynenowifi.gif') }}" alt="No WiFi! Denied!" style="width: 100%; height: auto; display: block;">
         </div>
 
-        <p>Select a network and enter the password.</p>
-        
         <form id="wifi-form" action="/connect" method="POST">
             <div class="network-list" id="network-list">
-                <p style="padding: 10px; text-align: center;">Scanning for networks...</p>
+                <p style="padding: 20px; text-align: center; color: var(--text-secondary);">Scanning for networks...</p>
             </div>
+            
             <input type="hidden" name="ssid" id="ssid-input" required>
             <input type="password" name="password" placeholder="WiFi Password" required>
-            <input type="email" name="email" placeholder="Notify me at (email address)" style="width: 100%; padding: 0.75rem; margin-top: 1rem; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
-            <button type="submit" id="submit-btn" disabled>Connect</button>
+            <input type="email" name="email" placeholder="Email for IP notification (Optional)">
+            
+            <button type="submit" id="submit-btn" disabled>Connect to WiFi</button>
         </form>
         
-        <div id="status"></div>
+        <div id="status">Secure Setup Portal Active</div>
     </div>
 
     <script>
+        // Particles Effect
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5;
+                this.speedX = Math.random() * 0.5 - 0.25;
+                this.speedY = Math.random() * 0.5 - 0.25;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width) this.x = 0;
+                else if (this.x < 0) this.x = canvas.width;
+                if (this.y > canvas.height) this.y = 0;
+                else if (this.y < 0) this.y = canvas.height;
+            }
+            draw() {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function createParticles() {
+            const count = (canvas.width * canvas.height) / 15000;
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function connectParticles() {
+            for (let a = 0; a < particles.length; a++) {
+                for (let b = a; b < particles.length; b++) {
+                    const dx = particles[a].x - particles[b].x;
+                    const dy = particles[a].y - particles[b].y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < 150) {
+                        ctx.strokeStyle = `rgba(56, 189, 248, ${1 - distance/150})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(particles[a].x, particles[a].y);
+                        ctx.lineTo(particles[b].x, particles[b].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            connectParticles();
+            requestAnimationFrame(animate);
+        }
+
+        window.addEventListener('resize', () => {
+            initCanvas();
+            particles = [];
+            createParticles();
+        });
+
+        initCanvas();
+        createParticles();
+        animate();
+
+        // WiFi Logic
         const networkList = document.getElementById('network-list');
         const ssidInput = document.getElementById('ssid-input');
         const submitBtn = document.getElementById('submit-btn');
@@ -114,16 +286,23 @@
                 const response = await fetch('/scan');
                 const networks = await response.json();
                 
-                networkList.innerHTML = '';
+                // Remember current selection
+                const currentSsid = ssidInput.value;
+
                 if (networks.length === 0) {
-                    networkList.innerHTML = '<p style="padding: 10px; text-align: center;">No networks found.</p>';
+                    networkList.innerHTML = '<p style="padding: 20px; text-align: center; color: var(--text-secondary);">No networks found.</p>';
                     return;
                 }
 
+                networkList.innerHTML = '';
                 networks.forEach(net => {
                     const div = document.createElement('div');
                     div.className = 'network-item';
-                    div.innerHTML = `<strong>${net.ssid}</strong> <small>(${net.signal}%)</small>`;
+                    if (net.ssid === currentSsid) {
+                        div.classList.add('selected');
+                        submitBtn.disabled = false;
+                    }
+                    div.innerHTML = `<strong>${net.ssid}</strong> <span style="float: right; font-size: 0.8rem;">${net.signal}%</span>`;
                     div.onclick = () => {
                         document.querySelectorAll('.network-item').forEach(el => el.classList.remove('selected'));
                         div.classList.add('selected');
@@ -133,12 +312,11 @@
                     networkList.appendChild(div);
                 });
             } catch (e) {
-                networkList.innerHTML = '<p style="padding: 10px; text-align: center; color: red;">Failed to scan networks.</p>';
+                console.error("Scan error:", e);
             }
         }
 
         fetchNetworks();
-        // Refresh every 10 seconds
         setInterval(fetchNetworks, 10000);
     </script>
 </body>

@@ -10,30 +10,33 @@ nm = NetworkManager()
 submitted_credentials = None
 creds_lock = threading.Lock()
 
-@app.route('/')
-@app.route('/<path:path>')
+
+@app.route("/")
+@app.route("/<path:path>")
 def catch_all(path=None):
     # This acts as the captive portal entry point
     # If they are hitting /scan or /connect, they should be handled by their respective routes
-    if path in ['scan', 'connect']:
-        return None # Flask will continue to the next match
-    return render_template('index.html')
+    if path in ["scan", "connect"]:
+        return None  # Flask will continue to the next match
+    return render_template("index.html")
 
-@app.route('/scan')
+
+@app.route("/scan")
 def scan():
     networks = nm.scan_wifi()
     return jsonify(networks)
 
-@app.route('/connect', methods=['POST'])
+
+@app.route("/connect", methods=["POST"])
 def connect():
     global submitted_credentials
-    ssid = request.form.get('ssid')
-    password = request.form.get('password')
-    email = request.form.get('email')
-    
+    ssid = request.form.get("ssid")
+    password = request.form.get("password")
+    email = request.form.get("email")
+
     if ssid and password:
         with creds_lock:
-            submitted_credentials = {'ssid': ssid, 'password': password, 'email': email}
+            submitted_credentials = {"ssid": ssid, "password": password, "email": email}
         return """
         <html>
             <head><meta http-equiv="refresh" content="5;url=/"></head>
@@ -43,7 +46,8 @@ def connect():
             </body>
         </html>
         """
-    return redirect('/')
+    return redirect("/")
+
 
 def get_submitted_credentials():
     global submitted_credentials
@@ -52,10 +56,12 @@ def get_submitted_credentials():
         submitted_credentials = None
         return creds
 
-def run_portal(host='0.0.0.0', port=80):
+
+def run_portal(host="0.0.0.0", port=80):
     # Flask normally runs in the foreground
     logging.info(f"Starting web portal on {host}:{port}")
     app.run(host=host, port=port, debug=False, use_reloader=False)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     run_portal()

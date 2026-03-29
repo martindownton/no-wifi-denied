@@ -4,38 +4,44 @@ import time
 import logging
 
 # Add src to path so we can import our modules
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from monitor import WiFiMonitor
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 
-def test_portal(preview_only=False):
+
+def test_portal(preview_only=False, port=80):
     print("🚀 No WiFi! Denied! - Portal Test Mode")
     if preview_only:
-        print("Running in PREVIEW MODE (Web Only).")
+        print(f"Running in PREVIEW MODE (Web Only) on port {port}.")
         print("This will NOT start a hotspot or disconnect your WiFi.")
     else:
-        print("Running in FULL MODE (Hotspot + Web).")
+        print(f"Running in FULL MODE (Hotspot + Web) on port {port}.")
         print("WARNING: This WILL disconnect your current WiFi/SSH session.")
-    
+
     print("Press Ctrl+C to stop and cleanup.")
     print("-" * 40)
 
     monitor = WiFiMonitor()
-    
+
     try:
         if preview_only:
             # Only start the web portal thread
             import threading
             from web_portal import run_portal
-            portal_thread = threading.Thread(target=run_portal, kwargs={'port': 80}, daemon=True)
+
+            portal_thread = threading.Thread(
+                target=run_portal, kwargs={"port": port}, daemon=True
+            )
             portal_thread.start()
-            
+
             # Get local IP to show the user where to go
             ip = monitor.nm.get_ip_address()
-            print(f"\n✅ Web Portal is running!")
-            print(f"Open your browser and go to: http://{ip}")
+            print("\n✅ Web Portal is running!")
+            print(f"Open your browser and go to: http://{ip}:{port}")
         else:
             # Force entry into setup mode (Full Hotspot)
             monitor.enter_setup_mode()
@@ -43,10 +49,10 @@ def test_portal(preview_only=False):
             print(f"SSID: {monitor.nm.hotspot_ssid}")
             print("1. Connect your phone/laptop to this WiFi.")
             print("2. Open a browser and go to http://anything.com")
-        
+
         while True:
             time.sleep(1)
-            
+
     except KeyboardInterrupt:
         print("\nStopping test and cleaning up...")
         if not preview_only:
@@ -54,15 +60,34 @@ def test_portal(preview_only=False):
             monitor.nm.stop_hotspot()
         print("Cleanup complete.")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Test the No WiFi! Denied! portal.")
-    parser.add_argument('--preview', action='store_true', help="Run web portal only (no hotspot)")
+    parser.add_argument(
+        "--preview", action="store_true", help="Run web portal only (no hotspot)"
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=None,
+        help="Custom port (default 80 for full, 8080 for preview)",
+    )
     args = parser.parse_args()
 
-    # Ensure we are running as root/sudo since port 80 requires it
-    if os.geteuid() != 0:
-        print("❌ Error: This script must be run with sudo.")
-        sys.exit(1)
-        
-    test_portal(preview_only=args.preview)
+    is_root = os.geteuid() == 0
+    port = args.port
+
+    if args.preview:
+        if port is None:
+            port = 80 if is_root else 8080
+        test_portal(preview_only=True, port=port)
+    else:
+        # Full mode REQUIRES root
+        if not is_root:
+            print("❌ Error: Full mode (hotspot) requires sudo.")
+            sys.exit(1)
+        if port is None:
+            port = 80
+        test_portal(preview_only=False, port=port)

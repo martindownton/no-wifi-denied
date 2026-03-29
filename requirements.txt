@@ -1,3 +1,3 @@
 flask
-python-networkmanager
-# smtplib is built-in
+ruff
+# python-networkmanager is only needed on the Pi

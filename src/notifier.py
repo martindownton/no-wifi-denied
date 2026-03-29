@@ -5,17 +5,20 @@ import logging
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
+
 
 class NotificationManager:
-    def __init__(self, config_path='config/email_settings.json'):
+    def __init__(self, config_path="config/email_settings.json"):
         self.config_path = config_path
         self.settings = self._load_settings()
 
     def _load_settings(self):
         if os.path.exists(self.config_path):
             try:
-                with open(self.config_path, 'r') as f:
+                with open(self.config_path, "r") as f:
                     return json.load(f)
             except Exception as e:
                 logging.error(f"Error loading email settings: {e}")
@@ -55,16 +58,18 @@ class NotificationManager:
     def _send_email(self, recipient_email, subject, body):
         try:
             msg = MIMEMultipart()
-            msg['From'] = self.settings['smtp_user']
-            msg['To'] = recipient_email
-            msg['Subject'] = subject
-            msg.attach(MIMEText(body, 'plain'))
+            msg["From"] = self.settings["smtp_user"]
+            msg["To"] = recipient_email
+            msg["Subject"] = subject
+            msg.attach(MIMEText(body, "plain"))
 
-            with smtplib.SMTP(self.settings['smtp_server'], self.settings['smtp_port']) as server:
+            with smtplib.SMTP(
+                self.settings["smtp_server"], self.settings["smtp_port"]
+            ) as server:
                 server.starttls()
-                server.login(self.settings['smtp_user'], self.settings['smtp_password'])
+                server.login(self.settings["smtp_user"], self.settings["smtp_password"])
                 server.send_message(msg)
-                
+
             logging.info(f"Notification email sent to {recipient_email}")
             return True
         except Exception as e:
