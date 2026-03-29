@@ -67,8 +67,15 @@ To enable email notifications:
 
 ## Testing the Interface
 
-If you want to test the portal UI without waiting for a connection failure:
-1. Run the test script:
+If you want to test the portal UI safely without losing your SSH connection:
+1. Run the test script in **Preview Mode**:
+   ```bash
+   sudo python3 scripts/test_portal.py --preview
+   ```
+2. Open your browser and visit your Raspberry Pi's IP address (e.g., `http://192.168.1.50`).
+
+To test the **Full Mode** (broadcasts a real hotspot, will disconnect SSH):
+1. Run the test script in **Full Mode**:
    ```bash
    sudo python3 scripts/test_portal.py
    ```

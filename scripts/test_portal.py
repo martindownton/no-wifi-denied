@@ -10,38 +10,59 @@ from monitor import WiFiMonitor
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def test_portal():
+def test_portal(preview_only=False):
     print("🚀 No WiFi! Denied! - Portal Test Mode")
-    print("This script will force the hotspot and web portal to start for testing.")
+    if preview_only:
+        print("Running in PREVIEW MODE (Web Only).")
+        print("This will NOT start a hotspot or disconnect your WiFi.")
+    else:
+        print("Running in FULL MODE (Hotspot + Web).")
+        print("WARNING: This WILL disconnect your current WiFi/SSH session.")
+    
     print("Press Ctrl+C to stop and cleanup.")
     print("-" * 40)
 
     monitor = WiFiMonitor()
     
     try:
-        # Force entry into setup mode
-        monitor.enter_setup_mode()
-        
-        print("\n✅ Portal is now broadcasting!")
-        print(f"SSID: {monitor.nm.hotspot_ssid}")
-        print("1. Connect your phone/laptop to this WiFi.")
-        print("2. Open a browser and go to http://anything.com (if it doesn't pop up automatically).")
-        print("3. Test the interface.")
+        if preview_only:
+            # Only start the web portal thread
+            import threading
+            from web_portal import run_portal
+            portal_thread = threading.Thread(target=run_portal, kwargs={'port': 80}, daemon=True)
+            portal_thread.start()
+            
+            # Get local IP to show the user where to go
+            ip = monitor.nm.get_ip_address()
+            print(f"\n✅ Web Portal is running!")
+            print(f"Open your browser and go to: http://{ip}")
+        else:
+            # Force entry into setup mode (Full Hotspot)
+            monitor.enter_setup_mode()
+            print("\n✅ Portal is now broadcasting!")
+            print(f"SSID: {monitor.nm.hotspot_ssid}")
+            print("1. Connect your phone/laptop to this WiFi.")
+            print("2. Open a browser and go to http://anything.com")
         
         while True:
-            # We don't want to actually connect and shut down, 
-            # so we just loop and keep it alive.
             time.sleep(1)
             
     except KeyboardInterrupt:
         print("\nStopping test and cleaning up...")
-        monitor.stop_dnsmasq()
-        monitor.nm.stop_hotspot()
+        if not preview_only:
+            monitor.stop_dnsmasq()
+            monitor.nm.stop_hotspot()
         print("Cleanup complete.")
 
 if __name__ == '__main__':
-    # Ensure we are running as root/sudo since nmcli and dnsmasq require it
+    import argparse
+    parser = argparse.ArgumentParser(description="Test the No WiFi! Denied! portal.")
+    parser.add_argument('--preview', action='store_true', help="Run web portal only (no hotspot)")
+    args = parser.parse_args()
+
+    # Ensure we are running as root/sudo since port 80 requires it
     if os.geteuid() != 0:
         print("❌ Error: This script must be run with sudo.")
         sys.exit(1)
-    test_portal()
+        
+    test_portal(preview_only=args.preview)
