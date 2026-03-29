@@ -10,7 +10,7 @@ echo "📶 No WiFi! Denied! - Setup"
 # 1. Update system and install dependencies
 echo "Installing dependencies..."
 sudo apt update
-sudo apt install -y python3-flask dnsmasq network-manager psmisc
+sudo apt install -y python3-flask python3-networkmanager dnsmasq network-manager psmisc
 
 # 2. Create systemd service
 SERVICE_PATH="/etc/systemd/system/nowifidenied.service"
