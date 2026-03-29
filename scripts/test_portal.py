@@ -31,8 +31,10 @@ def test_portal(preview_only=False, port=80):
         if preview_only:
             # Only start the web portal thread
             import threading
-            from web_portal import run_portal
+            from web_portal import run_portal, get_submitted_credentials
+            from notifier import NotificationManager
 
+            notifier = NotificationManager()
             portal_thread = threading.Thread(
                 target=run_portal, kwargs={"port": port}, daemon=True
             )
@@ -40,8 +42,21 @@ def test_portal(preview_only=False, port=80):
 
             # Get local IP to show the user where to go
             ip = monitor.nm.get_ip_address()
-            print("\n✅ Web Portal is running!")
+            print("\n✅ Web Portal is running in PREVIEW MODE!")
             print(f"Open your browser and go to: http://{ip}:{port}")
+            print("\n💡 TEST EMAIL FEATURE: If you enter an email in the form,")
+            print("   the script will attempt to send a test notification.")
+
+            while True:
+                # Check for submitted credentials in preview mode
+                creds = get_submitted_credentials()
+                if creds and creds.get("email"):
+                    print(f"\n📧 Sending test email to {creds['email']}...")
+                    if notifier.send_connection_success(creds["email"], "TEST_NETWORK", ip):
+                        print("✅ Test email sent successfully!")
+                    else:
+                        print("❌ Failed to send test email. Check config/email_settings.json")
+                time.sleep(1)
         else:
             # Force entry into setup mode (Full Hotspot)
             monitor.enter_setup_mode()

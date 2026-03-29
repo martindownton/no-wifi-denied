@@ -37,7 +37,7 @@
    - Starts a web server (`Flask`) on port 80.
 3. **Configuration**: 
    - You connect your phone to "No WiFi! Denied!".
-   - A setup page appears (or you browse to `http://anything.com`).
+   - A setup page appears (or you browse to `https://martindownton,dev`).
    - You select your WiFi network, enter the password, and click "Connect".
 4. **Reconnection**: The script stops the hotspot, applies the new credentials, and attempts to connect. If successful, it returns to **Monitor Mode**.
 
@@ -74,6 +74,7 @@ If you want to test the portal UI safely without losing your SSH connection:
    python3 scripts/test_portal.py --preview
    ```
 2. Open your browser and visit `http://localhost:8080` (or your Pi's IP).
+3. **Test Email**: In Preview Mode, entering an email and clicking "Connect" will attempt to send a real test email to verify your SMTP settings. No WiFi changes will occur.
 
 To test the **Full Mode** (broadcasts a real hotspot, will disconnect SSH):
 1. Run the test script in **Full Mode** (requires sudo):
