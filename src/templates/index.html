@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No WiFi! Denied!</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #1c1e21;
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .network-list {
+            margin-bottom: 1.5rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .network-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .network-item:last-child {
+            border-bottom: none;
+        }
+        .network-item:hover {
+            background: #f7f8fa;
+        }
+        .network-item.selected {
+            background: #e7f3ff;
+            border-left: 4px solid #1877f2;
+        }
+        input[type="password"], input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 1rem;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        button:disabled {
+            background-color: #bcc0c4;
+        }
+        #status {
+            margin-top: 1rem;
+            text-align: center;
+            color: #65676b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📶 No WiFi! Denied!</h1>
+        <p>Select a network and enter the password.</p>
+        
+        <form id="wifi-form" action="/connect" method="POST">
+            <div class="network-list" id="network-list">
+                <p style="padding: 10px; text-align: center;">Scanning for networks...</p>
+            </div>
+            <input type="hidden" name="ssid" id="ssid-input" required>
+            <input type="password" name="password" placeholder="WiFi Password" required>
+            <input type="email" name="email" placeholder="Notify me at (email address)" style="width: 100%; padding: 0.75rem; margin-top: 1rem; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box;">
+            <button type="submit" id="submit-btn" disabled>Connect</button>
+        </form>
+        
+        <div id="status"></div>
+    </div>
+
+    <script>
+        const networkList = document.getElementById('network-list');
+        const ssidInput = document.getElementById('ssid-input');
+        const submitBtn = document.getElementById('submit-btn');
+
+        async function fetchNetworks() {
+            try {
+                const response = await fetch('/scan');
+                const networks = await response.json();
+                
+                networkList.innerHTML = '';
+                if (networks.length === 0) {
+                    networkList.innerHTML = '<p style="padding: 10px; text-align: center;">No networks found.</p>';
+                    return;
+                }
+
+                networks.forEach(net => {
+                    const div = document.createElement('div');
+                    div.className = 'network-item';
+                    div.innerHTML = `<strong>${net.ssid}</strong> <small>(${net.signal}%)</small>`;
+                    div.onclick = () => {
+                        document.querySelectorAll('.network-item').forEach(el => el.classList.remove('selected'));
+                        div.classList.add('selected');
+                        ssidInput.value = net.ssid;
+                        submitBtn.disabled = false;
+                    };
+                    networkList.appendChild(div);
+                });
+            } catch (e) {
+                networkList.innerHTML = '<p style="padding: 10px; text-align: center; color: red;">Failed to scan networks.</p>';
+            }
+        }
+
+        fetchNetworks();
+        // Refresh every 10 seconds
+        setInterval(fetchNetworks, 10000);
+    </script>
+</body>
+</html>

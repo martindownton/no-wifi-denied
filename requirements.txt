@@ -1,0 +1,3 @@
+flask
+python-networkmanager
+# smtplib is built-in
