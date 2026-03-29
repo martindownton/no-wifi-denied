@@ -35,7 +35,7 @@
    - Starts a hotspot named "No WiFi! Denied!".
    - Starts a DNS server (`dnsmasq`) to hijack all requests.
    - Starts a web server (`Flask`) on port 80.
-3. **Configuration**:
+3. **Configuration**: 
    - You connect your phone to "No WiFi! Denied!".
    - A setup page appears (or you browse to `http://anything.com`).
    - You select your WiFi network, enter the password, and click "Connect".
