@@ -1,5 +1,7 @@
 # 📶 No WiFi! Denied!
 
+![No WiFi! Denied!](src/static/waynenowifi.gif)
+
 "No WiFi! Denied!" is a lightweight utility for Raspberry Pi that ensures your device stays connected to the internet. If it detects a lost connection, it automatically broadcasts a WiFi hotspot with a captive portal, allowing you to easily enter new WiFi credentials from your phone or computer.
 
 ## Features
